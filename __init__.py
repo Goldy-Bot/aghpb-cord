@@ -23,7 +23,7 @@ class ProgrammingBooks(GoldyBot.Extenstion):
         async def get(self:ProgrammingBooks, ctx):
             author = GoldyBot.Member(ctx)
 
-            programming_lang:str=None;picture_name:str=None;picture_list:list=[];programming_lang=(lambda programming_language_list: (programming_language_list[random.randint(0, len(programming_language_list) - 1)]))(os.listdir(f'{self.module.path_to_module}/assets/programming_books')); picture_list=(lambda programming_lang: os.listdir(f"{self.module.path_to_module}/assets/programming_books/{programming_lang}"))(programming_lang); picture_name=(lambda picture_list : picture_list[random.randint(0, len(picture_list) - 1)])(picture_list); picture_path = f"{self.module.path_to_module}/assets/programming_books/{programming_lang}/{picture_name}"
+            programming_lang=(lambda programming_language_list: (programming_language_list[random.randint(0, len(programming_language_list) - 1)]))(os.listdir(f'{self.module.path_to_module}/assets/programming_books')); picture_list=(lambda programming_lang: os.listdir(f"{self.module.path_to_module}/assets/programming_books/{programming_lang}"))(programming_lang); picture_name=(lambda picture_list : picture_list[random.randint(0, len(picture_list) - 1)])(picture_list); picture_path = f"{self.module.path_to_module}/assets/programming_books/{programming_lang}/{picture_name}"
 
             await send_msg(ctx, f"📔 **{mention(author)} Anime girl holding programming book for ``{programming_lang}``.**")
             await send_msg(ctx, file=GoldyBot.nextcord.File(picture_path))
@@ -33,7 +33,7 @@ class ProgrammingBooks(GoldyBot.Extenstion):
             author = GoldyBot.Member(ctx)
             target_member = GoldyBot.Member(ctx, mention_str=target_member)
 
-            programming_lang:str=None;picture_name:str=None;picture_list:list=[];programming_lang=(lambda programming_language_list: (programming_language_list[random.randint(0, len(programming_language_list) - 1)]))(os.listdir(f'{self.module.path_to_module}/assets/programming_books')); picture_list=(lambda programming_lang: os.listdir(f"{self.module.path_to_module}/assets/programming_books/{programming_lang}"))(programming_lang); picture_name=(lambda picture_list : picture_list[random.randint(0, len(picture_list) - 1)])(picture_list); picture_path = f"{self.module.path_to_module}/assets/programming_books/{programming_lang}/{picture_name}"
+            programming_lang=(lambda programming_language_list: (programming_language_list[random.randint(0, len(programming_language_list) - 1)]))(os.listdir(f'{self.module.path_to_module}/assets/programming_books')); picture_list=(lambda programming_lang: os.listdir(f"{self.module.path_to_module}/assets/programming_books/{programming_lang}"))(programming_lang); picture_name=(lambda picture_list : picture_list[random.randint(0, len(picture_list) - 1)])(picture_list); picture_path = f"{self.module.path_to_module}/assets/programming_books/{programming_lang}/{picture_name}"
 
             await send_msg(target_member, file=GoldyBot.nextcord.File(picture_path))
 
