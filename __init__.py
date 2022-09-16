@@ -6,7 +6,7 @@ import random
 
 AUTHOR = 'Dev Goldy'
 AUTHOR_GITHUB = 'https://github.com/THEGOLDENPRO'
-OPEN_SOURCE_LINK = 'https://github.com/Goldy-Bot/Example-GoldyBot-Module'
+OPEN_SOURCE_LINK = 'https://github.com/THEGOLDENPRO/cat_ears'
 
 class ProgrammingBooks(GoldyBot.Extension):
 
