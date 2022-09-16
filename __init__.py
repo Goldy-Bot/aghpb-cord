@@ -8,7 +8,7 @@ AUTHOR = 'Dev Goldy'
 AUTHOR_GITHUB = 'https://github.com/THEGOLDENPRO'
 OPEN_SOURCE_LINK = 'https://github.com/Goldy-Bot/Example-GoldyBot-Module'
 
-class ProgrammingBooks(GoldyBot.Extenstion):
+class ProgrammingBooks(GoldyBot.Extension):
 
     def __init__(self, package_module=None):
         super().__init__(self, package_module_name=package_module)
@@ -28,7 +28,7 @@ class ProgrammingBooks(GoldyBot.Extenstion):
             await send_msg(ctx, f"📔 **{mention(author)} Anime girl holding programming book for ``{programming_lang}``.**")
             await send_msg(ctx, file=GoldyBot.nextcord.File(picture_path))
 
-        @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book to a member. 😈", required_roles=["bot_dev"])
+        @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book to a member. 😈", required_roles=["bot_dev", "nova_staff", "anime", "bot_admin"])
         async def send_to_member(self:ProgrammingBooks, ctx, target_member):
             author = GoldyBot.Member(ctx)
             target_member = GoldyBot.Member(ctx, mention_str=target_member)
