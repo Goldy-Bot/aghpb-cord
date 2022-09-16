@@ -67,7 +67,8 @@ class ProgrammingBooks(GoldyBot.Extension):
 
         @GoldyBot.command(slash_cmd_only=True)
         async def programming_books(self:ProgrammingBooks, ctx):
-            random.seed(time.process_time())
+            #random.seed(time.process_time())
+            pass
 
         @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book.", required_roles=["anime"], slash_options={
             "language": nextcord.SlashOption(required=False)
