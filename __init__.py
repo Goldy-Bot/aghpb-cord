@@ -1,13 +1,10 @@
 from __future__ import annotations
-from genericpath import isdir
-import time
 import GoldyBot
 from GoldyBot.utility.commands import send as send_msg, mention
 
 import os
 import random
 import nextcord
-from colorthief import ColorThief
 
 from .book import ProgrammingBook
 
@@ -20,7 +17,7 @@ class ProgrammingBooks(GoldyBot.Extension):
         self.language_not_found_embed = GoldyBot.Embed(
             title="⛔ Programming Language Not Found",
             description="Did you spell it correctly?",
-            colour=GoldyBot.colours.RED
+            colour=GoldyBot.Colours.RED
         )
 
         self.programming_book_embed = GoldyBot.Embed(
@@ -28,7 +25,7 @@ class ProgrammingBooks(GoldyBot.Extension):
             description="""
 *Anime girl holding programming book of* **``{}``**.
             """,
-            colour=GoldyBot.colours.AKI_BLUE
+            colour=GoldyBot.Colours.AKI_BLUE
         )
 
         super().__init__(self, package_module_name=package_module)
@@ -90,7 +87,7 @@ class ProgrammingBooks(GoldyBot.Extension):
                 book_embed.description = book_embed.description.format(book.language)
                 book_embed.set_footer(text=f"File Name: {book.file_name}")
                 book_embed.set_image(f"attachment://book_image.png")
-                book_embed.colour = GoldyBot.colours().custom_colour(rgb=ColorThief(book.file_path).get_color(quality=5))
+                book_embed.colour = GoldyBot.Colours().get_colour_from_image(GoldyBot.File(book.file_path)) # Only works in Goldy Bot v4dev24.
 
                 await send_msg(ctx, embed=book_embed, file=GoldyBot.nextcord.File(book.file_path, filename="book_image.png"))
 

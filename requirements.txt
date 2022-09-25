@@ -1,1 +1,1 @@
-colorthief
+GoldyBot>=4.0.dev24
