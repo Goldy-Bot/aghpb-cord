@@ -1,6 +1,6 @@
 from __future__ import annotations
 import GoldyBot
-from GoldyBot.utility.commands import send as send_msg, mention
+from GoldyBot.utility.commands import send, mention
 
 import os
 import random
@@ -64,7 +64,6 @@ class ProgrammingBooks(GoldyBot.Extension):
 
         @GoldyBot.command(slash_cmd_only=True)
         async def programming_books(self:ProgrammingBooks, ctx):
-            #random.seed(time.process_time())
             pass
 
         @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book.", required_roles=["anime"], slash_options={
@@ -78,7 +77,7 @@ class ProgrammingBooks(GoldyBot.Extension):
             book = await self.random_book(language)
 
             if book == None:
-                message = await send_msg(ctx, embed=self.language_not_found_embed)
+                message = await send(ctx, embed=self.language_not_found_embed)
                 await GoldyBot.asyncio.sleep(3)
                 await message.delete()
             else:
@@ -89,7 +88,7 @@ class ProgrammingBooks(GoldyBot.Extension):
                 book_embed.set_image(f"attachment://book_image.png")
                 book_embed.colour = GoldyBot.Colours().get_colour_from_image(GoldyBot.File(book.file_path)) # Only works in Goldy Bot v4dev24.
 
-                await send_msg(ctx, embed=book_embed, file=GoldyBot.nextcord.File(book.file_path, filename="book_image.png"))
+                await send(ctx, embed=book_embed, file=GoldyBot.nextcord.File(book.file_path, filename="book_image.png"))
 
                 del book_embed
 
@@ -103,9 +102,9 @@ class ProgrammingBooks(GoldyBot.Extension):
 
             book = await self.random_book(await self.random_language())
 
-            await send_msg(target_member, file=GoldyBot.nextcord.File(book.file_path))
+            await send(target_member, file=GoldyBot.nextcord.File(book.file_path))
 
-            await send_msg(ctx, f"💚 **{mention(author)} Book sent! They got ``{book.language}``.**")
+            await send(ctx, f"💚 **{mention(author)} Book sent! They got ``{book.language}``.**")
 
         
 def load():
