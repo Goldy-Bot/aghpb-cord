@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 from typing import List
 import GoldyBot
-from GoldyBot.utility.commands import send, mention
+from GoldyBot.utility.commands import send, mention, think
 
 import os
 import random
@@ -78,6 +78,7 @@ class ProgrammingBooks(GoldyBot.Extension):
             "language": nextcord.SlashOption(required=False)
         })
         async def get(self:ProgrammingBooks, ctx, language=None):
+            await think(ctx)
             
             if language == None:
                 language = await self.random_language()
@@ -102,6 +103,8 @@ class ProgrammingBooks(GoldyBot.Extension):
 
         @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book to a member. 😈", required_roles=["bot_dev", "nova_staff", "anime", "bot_admin"])
         async def send_to_member(self:ProgrammingBooks, ctx, target_member):
+            await think(ctx)
+
             author = GoldyBot.Member(ctx)
             target_member = GoldyBot.Member(ctx, mention_str=target_member)
 
