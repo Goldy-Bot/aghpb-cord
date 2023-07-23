@@ -1,122 +1,106 @@
 from __future__ import annotations
-import json
-from typing import List
+from typing import List, Dict, Any
+
 import GoldyBot
-from GoldyBot.utility.commands import send, mention, think
+from GoldyBot import SlashOptionChoice
 
-import os
-import random
-import nextcord
-import requests
+from io import BytesIO
+from datetime import datetime
 
-from .book import ProgrammingBook
+BASE_URL = "https://api.devgoldy.xyz/aghpb/v1"
 
-AUTHOR = 'Dev Goldy'
-AUTHOR_GITHUB = 'https://github.com/THEGOLDENPRO'
-OPEN_SOURCE_LINK = 'https://github.com/THEGOLDENPRO/cat_ears'
+RANDOM = "/random"
+CATEGORIES = "/categories"
 
 class ProgrammingBooks(GoldyBot.Extension):
-    def __init__(self, package_module=None):
-        self.API_BASE_URL = "https://api.devgoldy.me/aghpb"
-
-        self.RANDOM_ENDPOINT = "/random"
-        self.LANGUAGE_ENDPOINT = "/language"
-        self.LANGUAGES_ENDPOINT = "/languages"
-
-        self.language_not_found_embed = GoldyBot.Embed(
-            title="⛔ Programming Language Not Found",
-            description="Did you spell it correctly?",
-            colour=GoldyBot.Colours.RED
-        )
+    def __init__(self):
+        super().__init__()
 
         self.programming_book_embed = GoldyBot.Embed(
-            title="📔 Anime Girl Holding Programming Book",
-            description="""
-*Anime girl holding programming book of* **``{}``**.
-            """,
-            colour=GoldyBot.Colours.AKI_BLUE
+            title = "📔 Anime Girls Holding Programming Books",
+            fields = [
+                GoldyBot.EmbedField(
+                    name = "📖 Category:",
+                    value = "- **``{book_category}``**",
+                    inline = True 
+                ),
+                GoldyBot.EmbedField(
+                    name = "📅 Date Added:",
+                    value = "- **<t:{date_added_timestamp}:f>**",
+                    inline = True 
+                ),
+                GoldyBot.EmbedField(
+                    name = "🪪 Book Name:",
+                    value = "- **``{book_name}``**"
+                )
+            ],
+            colour = GoldyBot.Colours.INVISIBLE
         )
 
-        super().__init__(self, package_module_name=package_module)
+    programming_books = GoldyBot.GroupCommand("programming_books", description = "Get images of anime girls holding programming books.")
 
-        #self.path_to_folder = f"{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books"
+    async def dynamic_categories(self, typing_value: str) -> List[SlashOptionChoice]:
+        r = await self.goldy.http_client._session.get(BASE_URL + CATEGORIES)
+        categories: List[str] = await r.json()
 
-    async def random_language(self) -> str:
-        language_list:list = json.loads(requests.get(self.API_BASE_URL + self.LANGUAGES_ENDPOINT).text)
-        language = language_list[random.randint(0, len(language_list) - 1)]
+        choices: List[SlashOptionChoice] = []
 
-        if language in [".git", "CONTRIBUTING.md", "README.md"]:
-            return "Python"
-        else:
-            return language
+        for category in categories:
+            if typing_value.lower() in category.lower():
+                choices.append(SlashOptionChoice(category, category))
 
-    async def random_book(self, language:str) -> ProgrammingBook|None:
-        """Returns random book from a specific language."""
-        actual_language:str
-        for actual_language in json.loads(requests.get(self.API_BASE_URL + self.LANGUAGES_ENDPOINT).text):
-            if language.upper() == actual_language.upper():
-                web_file = GoldyBot.WebFile(self.API_BASE_URL + self.LANGUAGE_ENDPOINT + f"/{language}", download_to_disk=True)
+        return choices
 
-                return ProgrammingBook(
-                    file_name=web_file.file_name,
-                    file=web_file,
-                    language=actual_language,
-                )
+    @programming_books.sub_command(description = "Sends a random book.", slash_options = {
+        "category": GoldyBot.SlashOptionAutoComplete(
+            callback = dynamic_categories,
+            required = False
+        )
+    })
+    async def random(self, platter: GoldyBot.GoldPlatter, category: str = None):
+        url = BASE_URL + RANDOM
 
-            else:
-                pass
+        if category is not None:
+            url += f"?category={category}"
 
-        return None
+        embed = self.programming_book_embed.copy()
 
-    def loader(self):
+        await platter.wait()
+        book = await self.goldy.http_client._session.get(url)
 
-        @GoldyBot.command(slash_cmd_only=True)
-        async def programming_books(self:ProgrammingBooks, ctx):
-            pass
+        embed.format_fields(
+            book_category = book.headers["book-category"],
+            date_added_timestamp = int(datetime.fromisoformat(book.headers["book-date-added"]).timestamp()),
+            book_name = book.headers["book-name"]
+        )
 
-        @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book.", required_roles=["anime"], slash_options={
-            "language": nextcord.SlashOption(required=False)
-        })
-        async def get(self:ProgrammingBooks, ctx, language=None):
-            await think(ctx)
-            
-            if language == None:
-                language = await self.random_language()
+        book_file = await book.read()
+        book_file = GoldyBot.File(BytesIO(book_file), file_name = "image.png")
 
-            book = await self.random_book(language)
+        embed["image"] = GoldyBot.EmbedImage(book_file.attachment_url)
 
-            if book == None:
-                message = await send(ctx, embed=self.language_not_found_embed)
-                await GoldyBot.asyncio.sleep(3)
-                await message.delete()
-            else:
-                book_embed = self.programming_book_embed.copy()
-                
-                book_embed.description = book_embed.description.format(book.language)
-                book_embed.set_footer(text=f"File Name: {book.file_name}")
-                book_embed.set_image(f"attachment://{book.file_name}")
-                book_embed.colour = GoldyBot.Colours().get_colour_from_image(book.file) # Only works in Goldy Bot v4dev24.
+        await platter.send_message(
+            embeds = [embed], files = [book_file]
+        )
 
-                await send(ctx, embed=book_embed, file=GoldyBot.nextcord.File(book.file.get_file(), filename=book.file_name))
+    """
+    @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book to a member. 😈", required_roles=["bot_dev", "nova_staff", "anime", "bot_admin"])
+    async def send_to_member(self:ProgrammingBooks, ctx, target_member):
+        await think(ctx)
 
-                del book_embed
+        author = GoldyBot.Member(ctx)
+        target_member = GoldyBot.Member(ctx, mention_str=target_member)
 
-        @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book to a member. 😈", required_roles=["bot_dev", "nova_staff", "anime", "bot_admin"])
-        async def send_to_member(self:ProgrammingBooks, ctx, target_member):
-            await think(ctx)
+        # IGNORE this piece of BAD CODE, lmao
+        #programming_lang=(lambda programming_language_list: (programming_language_list[random.randint(0, len(programming_language_list) - 1)]))(os.listdir(f'{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books')); picture_list=(lambda programming_lang: os.listdir(f"{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books/{programming_lang}"))(programming_lang); picture_name=(lambda picture_list : picture_list[random.randint(0, len(picture_list) - 1)])(picture_list); picture_path = f"{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books/{programming_lang}/{picture_name}"
 
-            author = GoldyBot.Member(ctx)
-            target_member = GoldyBot.Member(ctx, mention_str=target_member)
+        book = await self.random_book(await self.random_language())
 
-            # IGNORE this piece of BAD CODE, lmao
-            #programming_lang=(lambda programming_language_list: (programming_language_list[random.randint(0, len(programming_language_list) - 1)]))(os.listdir(f'{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books')); picture_list=(lambda programming_lang: os.listdir(f"{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books/{programming_lang}"))(programming_lang); picture_name=(lambda picture_list : picture_list[random.randint(0, len(picture_list) - 1)])(picture_list); picture_path = f"{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books/{programming_lang}/{picture_name}"
+        await send(target_member, file=GoldyBot.nextcord.File(book.file.get_file()))
 
-            book = await self.random_book(await self.random_language())
+        await send(ctx, f"💚 **{mention(author)} Book sent! They got ``{book.language}``.**")
+    """
 
-            await send(target_member, file=GoldyBot.nextcord.File(book.file.get_file()))
 
-            await send(ctx, f"💚 **{mention(author)} Book sent! They got ``{book.language}``.**")
-
-        
 def load():
-    ProgrammingBooks(package_module=__name__)
+    ProgrammingBooks()
