@@ -1,11 +1,12 @@
 from __future__ import annotations
-from typing import List, Dict, Any
+from typing import List
 
 import GoldyBot
 from GoldyBot import SlashOptionChoice
 
 from io import BytesIO
 from datetime import datetime
+from .category_emojis import CATEGORY_EMOJIS
 
 BASE_URL = "https://api.devgoldy.xyz/aghpb/v1"
 
@@ -17,24 +18,11 @@ class ProgrammingBooks(GoldyBot.Extension):
         super().__init__()
 
         self.programming_book_embed = GoldyBot.Embed(
-            title = "📔 Anime Girls Holding Programming Books",
-            fields = [
-                GoldyBot.EmbedField(
-                    name = "📖 Category:",
-                    value = "- **``{book_category}``**",
-                    inline = True 
-                ),
-                GoldyBot.EmbedField(
-                    name = "📅 Date Added:",
-                    value = "- **<t:{date_added_timestamp}:f>**",
-                    inline = True 
-                ),
-                GoldyBot.EmbedField(
-                    name = "🪪 Book Name:",
-                    value = "- **``{book_name}``**"
-                )
-            ],
-            colour = GoldyBot.Colours.INVISIBLE
+            title = "📔 {name}",
+            description = """
+            - **{category_emoji} Category: ``{category}``**
+            - **📅 Date Added: <t:{date_added_timestamp}:D>**
+            """
         )
 
     programming_books = GoldyBot.GroupCommand("programming_books", description = "Get images of anime girls holding programming books.")
@@ -66,18 +54,22 @@ class ProgrammingBooks(GoldyBot.Extension):
         embed = self.programming_book_embed.copy()
 
         await platter.wait()
-        book = await self.goldy.http_client._session.get(url)
+        book_response = await self.goldy.http_client._session.get(url)
 
-        embed.format_fields(
-            book_category = book.headers["book-category"],
-            date_added_timestamp = int(datetime.fromisoformat(book.headers["book-date-added"]).timestamp()),
-            book_name = book.headers["book-name"]
+        embed.format_title(name = book_response.headers["book-name"].replace("_", " ").capitalize())
+
+        category_emoji = CATEGORY_EMOJIS.get(book_response.headers["book-category"], "")
+        embed.format_description(
+            category = book_response.headers["book-category"],
+            category_emoji = category_emoji if not category_emoji == "" else "📖",
+            date_added_timestamp = int(datetime.fromisoformat(book_response.headers["book-date-added"]).timestamp())
         )
 
-        book_file = await book.read()
-        book_file = GoldyBot.File(BytesIO(book_file), file_name = "image.png")
+        book_bytes = await book_response.read()
+        book_file = GoldyBot.File(BytesIO(book_bytes), file_name = "image.png")
 
         embed["image"] = GoldyBot.EmbedImage(book_file.attachment_url)
+        embed["color"] = GoldyBot.Colours.from_image(book_file)
 
         await platter.send_message(
             embeds = [embed], files = [book_file]

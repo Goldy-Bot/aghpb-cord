@@ -1,5 +1,5 @@
 [project]
-name = "aghpb"
+name = "aghpb_cord"
 description = "Goldy Bot extension for anime girls holding programming books."
 authors = [
     {name = "Goldy", email = "goldy@devgoldy.xyz"},
