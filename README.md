@@ -1,5 +1,13 @@
-# aghpb
+<div align="center">
 
-| 🖼 Picture 1  | 🖼 Picture 2  |
-| ------------- |:-------------:|
-| <img align="left" src="https://user-images.githubusercontent.com/66202304/190892520-61c638e0-f431-4927-9784-17feb0e06f86.png" width="380"> | <img align="right" src="https://user-images.githubusercontent.com/66202304/190892619-ca836b54-5a4a-444e-8598-acf91035929b.png" width="380"> |
+  # aghpb_cord
+
+  <sub>Goldy Bot extension for anime girls holding programming books.</sub>
+
+  <img src="https://github.com/THEGOLDENPRO/aghpb_cord/assets/66202304/294ac625-68f2-487b-89a9-b2c8849bdcae" width="500px">
+
+</div>
+
+<br>
+
+> ### 🆕 Has now been ported over to [Goldy Bot V5](https://github.com/Goldy-Bot/Goldy-Bot-V5).
