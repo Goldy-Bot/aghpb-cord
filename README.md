@@ -11,3 +11,5 @@
 <br>
 
 > ### 🆕 Has now been ported over to [Goldy Bot V5](https://github.com/Goldy-Bot/Goldy-Bot-V5).
+
+I made it using my API at 👉 https://api.devgoldy.xyz/aghpb/v1/
