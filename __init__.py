@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import List
+from typing import List, Dict
 
 import GoldyBot
-from GoldyBot import SlashOptionChoice
+from GoldyBot import SlashOptionChoice, front_end_errors
 
+import aiohttp
 from io import BytesIO
 from datetime import datetime
 from .category_emojis import CATEGORY_EMOJIS
@@ -12,6 +13,8 @@ BASE_URL = "https://api.devgoldy.xyz/aghpb/v1"
 
 RANDOM = "/random"
 CATEGORIES = "/categories"
+SEARCH = "/search"
+GET_ID = "/get/id"
 
 class ProgrammingBooks(GoldyBot.Extension):
     def __init__(self):
@@ -39,33 +42,25 @@ class ProgrammingBooks(GoldyBot.Extension):
 
         return choices
 
-    @programming_books.sub_command(description = "Sends a random book.", slash_options = {
-        "category": GoldyBot.SlashOptionAutoComplete(
-            callback = dynamic_categories,
-            required = False
-        )
-    })
-    async def random(self, platter: GoldyBot.GoldPlatter, category: str = None):
-        url = BASE_URL + RANDOM
+    async def dynamic_search(self, typing_value: str) -> List[SlashOptionChoice]:
+        r = await self.goldy.http_client._session.get(BASE_URL + SEARCH + f"?query={typing_value}")
+        books: List[Dict[str, str]] = await r.json()
 
-        if category is not None:
-            url += f"?category={category}"
-
+        return [SlashOptionChoice(book["name"], book["search_id"]) for book in books]
+    
+    async def send_book(self, platter: GoldyBot.GoldPlatter, response: aiohttp.ClientResponse) -> None:
         embed = self.programming_book_embed.copy()
 
-        await platter.wait()
-        book_response = await self.goldy.http_client._session.get(url)
+        embed.format_title(name = response.headers["book-name"])
 
-        embed.format_title(name = book_response.headers["book-name"].replace("_", " ").capitalize())
-
-        category_emoji = CATEGORY_EMOJIS.get(book_response.headers["book-category"], "")
+        category_emoji = CATEGORY_EMOJIS.get(response.headers["book-category"], "")
         embed.format_description(
-            category = book_response.headers["book-category"],
+            category = response.headers["book-category"],
             category_emoji = category_emoji if not category_emoji == "" else "📖",
-            date_added_timestamp = int(datetime.fromisoformat(book_response.headers["book-date-added"]).timestamp())
+            date_added_timestamp = int(datetime.fromisoformat(response.headers["book-date-added"]).timestamp())
         )
 
-        book_bytes = await book_response.read()
+        book_bytes = await response.read()
         book_file = GoldyBot.File(BytesIO(book_bytes), file_name = "image.png")
 
         embed["image"] = GoldyBot.EmbedImage(book_file.attachment_url)
@@ -74,6 +69,55 @@ class ProgrammingBooks(GoldyBot.Extension):
         await platter.send_message(
             embeds = [embed], files = [book_file]
         )
+
+
+    @programming_books.sub_command(
+        description = "Sends a random book.", 
+        slash_options = {
+            "category": GoldyBot.SlashOptionAutoComplete(
+                description = "The programming languages and categories you may filter by.",
+                callback = dynamic_categories,
+                required = False
+            )
+        }
+    )
+    async def random(self, platter: GoldyBot.GoldPlatter, category: str = None):
+        url = BASE_URL + RANDOM
+
+        if category is not None:
+            url += f"?category={category}"
+
+        await platter.wait()
+        book_response = await self.goldy.http_client._session.get(url)
+
+        await self.send_book(platter, book_response)
+
+
+    @programming_books.sub_command(
+        description = "Allows you to search and get a specific book.", 
+        slash_options = {
+            "query": GoldyBot.SlashOptionAutoComplete(
+                description = "✨ Look up your favorite book!",
+                callback = dynamic_search
+            )
+        }
+    )
+    async def search(self, platter: GoldyBot.GoldPlatter, query: str):
+        if not query.isnumeric():
+            choices = await self.dynamic_search(query)
+
+            if choices == []:
+                raise BookNotFound(platter, self.logger)
+
+            query = choices[0]["value"]
+
+        url = BASE_URL + f"{GET_ID}/{query}"
+
+        await platter.wait()
+        book_response = await self.goldy.http_client._session.get(url)
+
+        await self.send_book(platter, book_response)
+
 
     """
     @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book to a member. 😈", required_roles=["bot_dev", "nova_staff", "anime", "bot_admin"])
@@ -93,6 +137,19 @@ class ProgrammingBooks(GoldyBot.Extension):
         await send(ctx, f"💚 **{mention(author)} Book sent! They got ``{book.language}``.**")
     """
 
+
+class BookNotFound(front_end_errors.FrontEndErrors):
+    def __init__(self, platter: GoldyBot.GoldPlatter, logger: GoldyBot.log.Logger = None):
+        super().__init__(
+            embed = GoldyBot.Embed(
+                title = "❤️📔 Book Not Found", 
+                description = "Sorry, we couldn't find a book with that name.",
+                colour = GoldyBot.Colours.RED
+            ),
+            message = "Member searched for book that couldn't be found.",
+            platter = platter, 
+            logger = logger
+        )
 
 def load():
     ProgrammingBooks()
