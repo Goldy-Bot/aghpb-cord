@@ -43,7 +43,7 @@ class ProgrammingBooks(GoldyBot.Extension):
         return choices
 
     async def dynamic_search(self, typing_value: str) -> List[SlashOptionChoice]:
-        r = await self.goldy.http_client._session.get(BASE_URL + SEARCH + f"?query={typing_value}")
+        r = await self.goldy.http_client._session.get(BASE_URL + SEARCH, params = {"query": typing_value})
         books: List[Dict[str, str]] = await r.json()
 
         return [SlashOptionChoice(book["name"], book["search_id"]) for book in books]
@@ -82,13 +82,14 @@ class ProgrammingBooks(GoldyBot.Extension):
         }
     )
     async def random(self, platter: GoldyBot.GoldPlatter, category: str = None):
+        params = {}
         url = BASE_URL + RANDOM
 
         if category is not None:
-            url += f"?category={category}"
+            params["category"] = category
 
         await platter.wait()
-        book_response = await self.goldy.http_client._session.get(url)
+        book_response = await self.goldy.http_client._session.get(url, params = params)
 
         await self.send_book(platter, book_response)
 
