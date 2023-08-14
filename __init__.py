@@ -79,7 +79,8 @@ class ProgrammingBooks(GoldyBot.Extension):
                 callback = dynamic_categories,
                 required = False
             )
-        }
+        },
+        wait = True
     )
     async def random(self, platter: GoldyBot.GoldPlatter, category: str = None):
         params = {}
@@ -88,7 +89,6 @@ class ProgrammingBooks(GoldyBot.Extension):
         if category is not None:
             params["category"] = category
 
-        await platter.wait()
         book_response = await self.goldy.http_client._session.get(url, params = params)
 
         await self.send_book(platter, book_response)
@@ -101,7 +101,8 @@ class ProgrammingBooks(GoldyBot.Extension):
                 description = "✨ Look up your favorite book!",
                 callback = dynamic_search
             )
-        }
+        },
+        wait = True
     )
     async def search(self, platter: GoldyBot.GoldPlatter, query: str):
         if not query.isnumeric():
@@ -114,7 +115,6 @@ class ProgrammingBooks(GoldyBot.Extension):
 
         url = BASE_URL + f"{GET_ID}/{query}"
 
-        await platter.wait()
         book_response = await self.goldy.http_client._session.get(url)
 
         await self.send_book(platter, book_response)
