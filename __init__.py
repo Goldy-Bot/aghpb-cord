@@ -23,10 +23,18 @@ class ProgrammingBooks(GoldyBot.Extension):
         self.programming_book_embed = GoldyBot.Embed(
             title = "📔 {name}",
             description = """
-            - **{category_emoji} Category: ``{category}``**
-            - **📅 Date Added: <t:{date_added_timestamp}:D>**
+            #### __Metadata__:
+            -- **{category_emoji} Category: ``{category}``**
+            -- **📅 Date Added: <t:{date_added_timestamp}:D>**
+            -- **🏷 Commit ID: [``{commit_hash}``]({commit_url})**
+            -- **🧑 Commit Author: ``{commit_author}``**
             """
         )
+
+        self.ads = [
+            "✨ The programming books API is open source, check it out at: https://github.com/THEGOLDENPRO/aghpb_api",
+            "💛 Big thanks to the aghpb repo: https://github.com/cat-milk/Anime-Girls-Holding-Programming-Books"
+        ]
 
     programming_books = GoldyBot.GroupCommand("programming_books", description = "Get images of anime girls holding programming books.")
 
@@ -57,7 +65,10 @@ class ProgrammingBooks(GoldyBot.Extension):
         embed.format_description(
             category = response.headers["book-category"],
             category_emoji = category_emoji if not category_emoji == "" else "📖",
-            date_added_timestamp = int(datetime.fromisoformat(response.headers["book-date-added"]).timestamp())
+            date_added_timestamp = int(datetime.fromisoformat(response.headers["book-date-added"]).timestamp()),
+            commit_hash = response.headers["book-commit-url"].split("/")[-1],
+            commit_url = response.headers["book-commit-url"],
+            commit_author = response.headers["book-commit-author"]
         )
 
         book_bytes = await response.read()
@@ -65,6 +76,8 @@ class ProgrammingBooks(GoldyBot.Extension):
 
         embed["image"] = GoldyBot.EmbedImage(book_file.attachment_url)
         embed["color"] = GoldyBot.Colours.from_image(book_file)
+
+        embed.set_random_footer(self.ads)
 
         await platter.send_message(
             embeds = [embed], files = [book_file]
