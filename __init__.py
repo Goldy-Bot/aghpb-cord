@@ -23,7 +23,7 @@ class ProgrammingBooks(GoldyBot.Extension):
         self.programming_book_embed = GoldyBot.Embed(
             title = "📔 {name}",
             description = """
-            #### __Metadata__:
+            #### Metadata:
             -- **{category_emoji} Category: ``{category}``**
             -- **📅 Date Added: <t:{date_added_timestamp}:D>**
             -- **🏷 Commit ID: [``{commit_hash}``]({commit_url})**
