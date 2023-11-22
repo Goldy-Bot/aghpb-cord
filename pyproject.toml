@@ -13,7 +13,7 @@ keywords = [
 dependencies = [
     "GoldyBot>=5.0dev12"
 ]
-version = "1.4"
+version = "1.5"
 
 [project.optional-dependencies]
 dev = [
