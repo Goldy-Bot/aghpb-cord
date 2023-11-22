@@ -4,7 +4,7 @@
 
   <sub>Goldy Bot extension for anime girls holding programming books.</sub>
 
-  <img src="https://github.com/THEGOLDENPRO/aghpb_cord/assets/66202304/294ac625-68f2-487b-89a9-b2c8849bdcae" width="500px">
+  <img src="./.assets/preview_1.png">
 
 </div>
 
