@@ -11,9 +11,9 @@ keywords = [
     "aghpb", "anime girls holding programming books"
 ]
 dependencies = [
-    "GoldyBot>=5.0dev12"
+    "GoldyBot>=5.1dev12"
 ]
-version = "1.5"
+version = "1.6"
 
 [project.optional-dependencies]
 dev = [
@@ -21,8 +21,8 @@ dev = [
 ]
 
 [project.urls]
-GitHub = "https://github.com/THEGOLDENPRO/cat_ears"
-BugTracker = "https://github.com/THEGOLDENPRO/cat_ears/issues"
+GitHub = "https://github.com/THEGOLDENPRO/aghpb_cord"
+BugTracker = "https://github.com/THEGOLDENPRO/aghpb_cord/issues"
 
 
 

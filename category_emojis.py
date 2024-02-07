@@ -62,7 +62,7 @@ CATEGORY_EMOJIS = {
   "Scala": "",
   "WebGL": "",
   "Unreal": "",
-  "R": "",
+  "R": ":regional_indicator_r:",
   "VHDL": "",
   "C#": "",
   "Angular": "",
