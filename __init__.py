@@ -22,7 +22,7 @@ from goldy_bot import (
     SlashOption
 )
 
-BASE_URL = "https://api.devgoldy.xyz/aghpb"
+BASE_URL = "https://api.devgoldy.xyz/aghpb/v1"
 
 extension = Extension("aghpb_cord")
 
@@ -53,9 +53,11 @@ class ProgrammingBooks():
         ...
 
     # TODO: Change to auto complete once implemented.
-    """
     async def dynamic_categories(self, typing_value: str) -> List[SlashOptionChoice]:
-        r = await self.goldy.http_client._session.get(BASE_URL + CATEGORIES)
+        client = await self.get_session()
+
+        r = await client.get(BASE_URL + "/categories")
+
         categories: List[str] = await r.json()
 
         choices: List[SlashOptionChoice] = []
@@ -65,11 +67,12 @@ class ProgrammingBooks():
                 choices.append(SlashOptionChoice(category, category))
 
         return choices
-    """
 
     async def dynamic_search(self, typing_value: str) -> List[SlashOptionChoice]:
         client = await self.get_session()
+
         r = await client.get(BASE_URL + "/search", params = {"query": typing_value})
+
         books: List[Dict[str, str]] = await r.json()
 
         return [SlashOptionChoice(book["name"], book["search_id"]) for book in books]
@@ -99,7 +102,7 @@ class ProgrammingBooks():
 
         client = await self.get_session()
 
-        book_response = await client.get(BASE_URL + "/v1/random", params = params)
+        book_response = await client.get(BASE_URL + "/random", params = params)
 
         await self.send_book(platter, book_response)
 
@@ -109,7 +112,7 @@ class ProgrammingBooks():
             "query": SlashOption(
                 description = "✨ Look up your favorite book!"
             )
-        },
+        }, 
         # slash_options = {
         #     "query": GoldyBot.SlashOptionAutoComplete(
         #         description = "✨ Look up your favorite book!",
@@ -129,7 +132,7 @@ class ProgrammingBooks():
 
         client = await self.get_session()
 
-        book_response = await client.get(BASE_URL + f"get/id/{query}")
+        book_response = await client.get(BASE_URL + f"/get/id/{query}")
 
         await self.send_book(platter, book_response)
 
@@ -152,21 +155,22 @@ class ProgrammingBooks():
     """
 
     async def send_book(self, platter: Platter, response: aiohttp.ClientResponse) -> None:
+        await platter.wait()
+
         embed = self.programming_book_embed.copy()
 
         embed.format_title(name = response.headers["book-name"])
 
-        category_emoji = CATEGORY_EMOJIS.get(response.headers["book-category"], "")
+        category_emoji = CATEGORY_EMOJIS.get(response.headers["book-category"], "📖")
+
         embed.format_description(
-            category = response.headers["book-category"],
-            category_emoji = category_emoji if not category_emoji == "" else "📖",
-            date_added_timestamp = int(datetime.fromisoformat(response.headers["book-date-added"]).timestamp()),
-            commit_hash = response.headers["book-commit-url"].split("/")[-1],
-            commit_url = response.headers["book-commit-url"],
+            category = response.headers["book-category"], 
+            category_emoji = category_emoji, 
+            date_added_timestamp = int(datetime.fromisoformat(response.headers["book-date-added"]).timestamp()), 
+            commit_hash = response.headers["book-commit-url"].split("/")[-1], 
+            commit_url = response.headers["book-commit-url"], 
             commit_author = response.headers["book-commit-author"]
         )
-
-        print(">>", embed.data)
 
         book_file = await File.from_response(response)
 
