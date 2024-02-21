@@ -2,13 +2,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Optional, List, Dict
+    from typing import Optional, List, Dict, Tuple
 
     from goldy_bot import Goldy
 
 import aiohttp
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from .category_emojis import CATEGORY_EMOJIS
 
 from goldy_bot import (
@@ -16,10 +16,10 @@ from goldy_bot import (
     Embed, 
     SlashOptionChoice, 
     Platter, 
-    EmbedImage,
-    File,
-    Colours,
-    SlashOption
+    EmbedImage, 
+    File, 
+    Colours, 
+    SlashOptionAutoComplete
 )
 
 BASE_URL = "https://api.devgoldy.xyz/aghpb/v1"
@@ -48,51 +48,43 @@ class ProgrammingBooks():
 
         self.__session: Optional[aiohttp.ClientSession] = None
 
-    @extension.command(description = "📖 Get images of anime girls holding programming books.", group = True)
-    async def programming_books(self):
-        ...
+        self.__categories_cache: Tuple[float, List[str]] = (0, [])
+        self.__categories_cache_expire = timedelta(days = 1)
 
-    # TODO: Change to auto complete once implemented.
-    async def dynamic_categories(self, typing_value: str) -> List[SlashOptionChoice]:
-        client = await self.get_session()
+    group = extension.group_command(
+        class_name = __qualname__, 
+        name = "programming_books", 
+        description = "📖 Get images of anime girls holding programming books."
+    )
 
-        r = await client.get(BASE_URL + "/categories")
+    async def get_categories(self, typing_value: str, **kwargs) -> List[SlashOptionChoice]:
+        current_timestamp = datetime.now().timestamp()
 
-        categories: List[str] = await r.json()
+        cache_expire_timestamp, categories = self.__categories_cache
 
-        choices: List[SlashOptionChoice] = []
+        if current_timestamp > cache_expire_timestamp:
+            client = await self.get_session()
+            r = await client.get(BASE_URL + "/categories")
 
-        for category in categories:
-            if typing_value.lower() in category.lower():
-                choices.append(SlashOptionChoice(category, category))
+            categories: List[str] = await r.json()
 
-        return choices
+            self.__categories_cache = (
+                current_timestamp + self.__categories_cache_expire.total_seconds(), categories
+            )
 
-    async def dynamic_search(self, typing_value: str) -> List[SlashOptionChoice]:
-        client = await self.get_session()
+        return [
+            SlashOptionChoice(category, category) for category in categories if typing_value.lower() in category.lower()
+        ]
 
-        r = await client.get(BASE_URL + "/search", params = {"query": typing_value})
-
-        books: List[Dict[str, str]] = await r.json()
-
-        return [SlashOptionChoice(book["name"], book["search_id"]) for book in books]
-
-    @programming_books.subcommand(
+    @group.subcommand(
         description = "📖 Sends a random book.", 
-        slash_options = { # TODO: Change to auto complete once implemented.
-            "category": SlashOption(
-                description = "The programming languages and categories you may filter by.",
+        slash_options = {
+            "category": SlashOptionAutoComplete( # TODO: Change to auto complete once implemented.
+                callback = get_categories, 
+                description = "The languages/categories you may filter by.", 
                 required = False
             )
-        },
-        # slash_options = {
-        #     "category": SlashOptionAutoComplete(
-        #         description = "The programming languages and categories you may filter by.",
-        #         callback = dynamic_categories,
-        #         required = False
-        #     )
-        # },
-        wait = True
+        }
     )
     async def random(self, platter: Platter, category: Optional[str] = None):
         params = {}
@@ -106,29 +98,35 @@ class ProgrammingBooks():
 
         await self.send_book(platter, book_response)
 
-    @programming_books.subcommand(
+
+    async def dynamic_search(self, typing_value: str, **kwargs) -> List[SlashOptionChoice]:
+        client = await self.get_session()
+
+        r = await client.get(BASE_URL + "/search", params = {"query": typing_value})
+
+        books: List[Dict[str, str]] = await r.json()
+
+        return [SlashOptionChoice(book["name"], book["search_id"]) for book in books]
+
+    @group.subcommand(
         description = "📖 Allows you to search and get a specific book.", 
         slash_options = { # TODO: Change to auto complete once implemented.
-            "query": SlashOption(
-                description = "✨ Look up your favorite book!"
+            "query": SlashOptionAutoComplete(
+                description = "✨ Look up your favorite book!",
+                callback = dynamic_search
             )
-        }, 
-        # slash_options = {
-        #     "query": GoldyBot.SlashOptionAutoComplete(
-        #         description = "✨ Look up your favorite book!",
-        #         callback = dynamic_search
-        #     )
-        # },
-        wait = True
+        }
     )
     async def search(self, platter: Platter, query: str):
         if not query.isnumeric():
             choices = await self.dynamic_search(query)
 
             if choices == []:
-                platter.error("book not found!") # TODO: Add this damn thing!
+                platter.error(
+                    "Sorry, we couldn't find the book you tried searching.", "❤️ 📔 Book Not Found", Colours.RED
+                )
 
-            query = choices[0]["value"]
+            query = choices[0].data["value"]
 
         client = await self.get_session()
 
@@ -189,21 +187,6 @@ class ProgrammingBooks():
 
         return self.__session
 
-# TODO: Complete these once front end errors are a thing.
-"""
-class BookNotFound(front_end_errors.FrontEndErrors):
-    def __init__(self, platter: GoldyBot.GoldPlatter, logger: GoldyBot.log.Logger = None):
-        super().__init__(
-            embed = GoldyBot.Embed(
-                title = "❤️📔 Book Not Found", 
-                description = "Sorry, we couldn't find a book with that name.",
-                colour = GoldyBot.Colours.RED
-            ),
-            message = "Member searched for book that couldn't be found.",
-            platter = platter, 
-            logger = logger
-        )
-"""
 
 def load(goldy: Goldy):
     extension.mount(goldy, ProgrammingBooks)
