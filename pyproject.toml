@@ -11,7 +11,7 @@ keywords = [
     "aghpb", "anime girls holding programming books"
 ]
 dependencies = [
-    "GoldyBot>=5.1dev12"
+    "GoldyBot>=5.1dev1"
 ]
 version = "1.6"
 
