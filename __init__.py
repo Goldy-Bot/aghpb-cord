@@ -76,7 +76,7 @@ class ProgrammingBooks():
             SlashOptionChoice(category, category) for category in categories if typing_value.lower() in category.lower()
         ]
 
-    @group.sub_command(
+    @group.subcommand(
         description = "📖 Sends a random book.", 
         slash_options = {
             "category": SlashOptionAutoComplete( # TODO: Change to auto complete once implemented.
@@ -108,7 +108,7 @@ class ProgrammingBooks():
 
         return [SlashOptionChoice(book["name"], book["search_id"]) for book in books]
 
-    @group.sub_command(
+    @group.subcommand(
         description = "📖 Allows you to search and get a specific book.", 
         slash_options = { # TODO: Change to auto complete once implemented.
             "query": SlashOptionAutoComplete(
