@@ -172,7 +172,7 @@ class ProgrammingBooks():
 
         book_file = await File.from_response(response)
 
-        embed.set_image(EmbedImage(book_file.attachment_url))
+        embed.data["image"] = EmbedImage(book_file.attachment_url).data
         embed.data["color"] = Colours.from_image(book_file)
 
         embed.set_random_footer(self.ads)
