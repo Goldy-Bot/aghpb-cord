@@ -134,24 +134,6 @@ class ProgrammingBooks():
 
         await self.send_book(platter, book_response)
 
-    """
-    @programming_books.sub_command(help_des="Sends image of anime girl holding a programming language book to a member. 😈", required_roles=["bot_dev", "nova_staff", "anime", "bot_admin"])
-    async def send_to_member(self:ProgrammingBooks, ctx, target_member):
-        await think(ctx)
-
-        author = GoldyBot.Member(ctx)
-        target_member = GoldyBot.Member(ctx, mention_str=target_member)
-
-        # IGNORE this piece of BAD CODE, lmao
-        #programming_lang=(lambda programming_language_list: (programming_language_list[random.randint(0, len(programming_language_list) - 1)]))(os.listdir(f'{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books')); picture_list=(lambda programming_lang: os.listdir(f"{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books/{programming_lang}"))(programming_lang); picture_name=(lambda picture_list : picture_list[random.randint(0, len(picture_list) - 1)])(picture_list); picture_path = f"{self.module.path_to_module}/assets/Anime-Girls-Holding-Programming-Books/{programming_lang}/{picture_name}"
-
-        book = await self.random_book(await self.random_language())
-
-        await send(target_member, file=GoldyBot.nextcord.File(book.file.get_file()))
-
-        await send(ctx, f"💚 **{mention(author)} Book sent! They got ``{book.language}``.**")
-    """
-
     async def send_book(self, platter: Platter, response: aiohttp.ClientResponse) -> None:
         await platter.wait()
 
